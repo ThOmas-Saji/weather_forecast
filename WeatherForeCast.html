@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather Application</title>
+    <link href="https://fonts.googleapis.com/css2?family=Lato:wght@100&display=swap" rel="stylesheet">
+  
+<style>
+
+body
+{
+    background-image: url('https://wallpapercave.com/wp/wp9746141.jpg');
+    background-size: 100%;
+    font-family: 'Roboto Mono', monospace;
+    
+}
+#container
+{
+    display: grid;
+    width: 100%;
+    grid-template-columns: repeat(12,auto);
+    grid-gap: 15px;
+}
+#header
+{
+   grid-area: 1/1/3/-1 ;
+   text-align: center;
+   padding: 20px;
+   border-radius: 40px;
+   background-color: rgba(30, 233, 12, 0.562);
+   box-shadow: rgba(6, 24, 44, 0.4) 0px 0px 0px 2px, rgba(6, 24, 44, 0.65) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset;
+}
+#title>h1
+{
+text-align: center;
+font-size: 40px;
+color: rgb(22, 56, 165);
+
+}
+#searchButton>input
+{
+    padding:5px 10px;
+    border-radius: 20px;
+    border: transparent;
+}
+#searchButton>button
+{
+   padding: 6px 10px;
+   border-radius: 20px;
+   border: transparent;
+   cursor: pointer;
+}
+#mainBody
+{
+    grid-area: 3/1/8/-1 ;
+    display: flex;
+   justify-content: space-around;
+}
+#displayCW>div
+{
+    padding: 20px;
+    text-align: center;
+    color: rgb(255, 255, 255);
+    background-color: rgba(117, 48, 30, 0.61);
+    border-radius: 20px;
+    font-size: 13px;
+    box-shadow: rgba(6, 24, 44, 0.4) 0px 0px 0px 2px, rgba(6, 24, 44, 0.65) 0px 4px 6px -1px, rgba(255, 255, 255, 0.08) 0px 1px 0px inset;
+}
+#displayMap
+{
+    padding: 10px;
+    margin-left: 15px;
+}
+#footer
+{
+    grid-area: 8/1/11/-1 ;
+    display: grid;
+    grid-template-columns: repeat(9,auto);
+    grid-gap: 15px;
+    justify-content: space-around;
+}
+#footer>div
+{
+ width: 130px;
+ height: 180px;
+ text-align: center;
+ padding: 5px;
+ /* color: rgb(247, 238, 238); */
+ background-color: rgba(68, 243, 14, 0.61);
+ border-radius:25px ;
+ box-shadow: rgba(50, 50, 93, 0.25) 0px 6px 12px -2px, rgba(0, 0, 0, 0.3) 0px 3px 7px -3px;
+}
+#footer>div>img
+{
+    width: 60px;
+    height: 50px;
+}
+#logout{
+    margin-left: 90%;
+    padding: 4px 10px;
+    border-radius: 20px;
+    background-color: salmon;
+    cursor: pointer;
+}
+#userNm{
+    text-align: end;
+}
+</style>
+
+
+</head>
+<body>
+  
+    <div id='container'>
+
+        <div id='header'>
+            <div id='title'><h1>Weather Forecast</h1><p>By Thomas Saji</p><h3 id='userNm'></h3><button onclick="logout()" id="logout">Logout</button></div>
+            <div id='searchButton'>
+                <input type="text" id="city" placeholder="Enter City"/> 
+                <button onclick="getWeather()">Search</button>
+            </div> 
+        </div>
+
+        <div id='mainBody'>
+            <div id="displayCW"> </div>
+            <div id='displayMap'></div>
+        </div>
+
+        <div id='footer'>
+        </div>
+
+    </div>
+   
+ 
+
+
+
+</body>
+</html>
+
+<script>
+
+let {name} = JSON.parse(localStorage.getItem("userDB"));
+
+document.querySelector("#userNm").textContent=`Welcome , ${name}`;
+
+async function getWeather()
+{
+        let city = document.querySelector("#city").value 
+        try
+        {
+           
+            let res = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=8acac82abc6bd9cfe8c5b5b513a6ca7b&units=metric`)  
+            let data = await res.json();
+            // console.log(data)
+            pastData(data.coord)
+            currentWeather(data.name,data.main,data.dt,data.weather[0]);
+
+        }
+        catch(err)
+        {
+            console.log(err+"Error")
+        }
+
+        document.querySelector('#displayMap').innerHTML='';
+     let div2 = document.createElement('div');
+     let iframe = document.createElement("iframe")
+        iframe.src=`https://maps.google.com/maps?q=${city}&t=&z=13&ie=UTF8&iwloc=&output=embed`
+        iframe.width="400";
+        iframe.height="350";
+
+        div2.append(iframe)
+        document.querySelector('#displayMap').append(div2)
+
+}
+
+let currentWeather = (place,{temp,feels_like,grnd_level,humidity,pressure,sea_level,temp_max,temp_min},day,{description}) =>
+{
+    document.querySelector('#displayCW').innerHTML='';
+    // console.log(place,temp,feels_like,grnd_level,humidity,pressure,sea_level,temp_max,temp_min,day,description)
+
+    let div = document.createElement('div');
+    let placeName = document.createElement('h2')
+         placeName.innerText=place+' Current Weather Report '
+         placeName.style.textDecoration='underline'
+    let dayName = document.createElement('h4')
+        dayName.innerText='Day & Time : '+new Date (day*1000);
+    let des = document.createElement('h4')
+        des.innerText='Weather Description : '+description;
+    let p1 = document.createElement('p')
+          p1.innerText='Temprature : '+temp+'°';
+    let p2 = document.createElement('p')
+        p2.innerText='Feels Like : '+feels_like+'°';
+    let p3 = document.createElement('p')
+       p3.innerText='Ground Level : '+grnd_level+'°';
+    let p4 = document.createElement('p')
+        p4.innerText='Sea Level : '+sea_level+'°';
+    let p5 = document.createElement('p')
+        p5.innerText='Humidity : '+humidity+'°';
+    let p6 = document.createElement('p')
+        p6.innerText='Pressure : '+pressure+'°';
+    let p7 = document.createElement('p')
+        p7.innerText='Maxmium Temprature : '+temp_max+'°';
+    let p8 = document.createElement('p')
+        p8.innerText='Minimum Temprature : '+temp_min+'°';
+
+    div.append(placeName,dayName,des,p1,p2,p3,p4,p5,p6,p7,p8);
+
+    document.querySelector('#displayCW').append(div);
+
+
+
+}
+
+
+
+    async function pastData({lon,lat}){
+
+        try
+        {          
+            let res2 = await fetch(`https://api.openweathermap.org/data/2.5/onecall?lat=${lat}&lon=${lon}&exclude=current,hourly,minutely,alerts&units=metric&appid=8acac82abc6bd9cfe8c5b5b513a6ca7b`)  
+            let data2 = await res2.json();
+            console.log(data2)
+           futureDaysWR(data2.daily)
+        }
+        catch(err)
+        {
+            console.log(err+"Error")
+        }
+    }
+
+let futureDaysWR = (days) =>
+{
+    document.querySelector('#footer').innerHTML='';
+    const daynames = ['Sun', 'Mon', 'Tues', 'Wed', 'Thu', 'Fri', 'Sat'];
+          
+    days.forEach((elem)=>
+    {
+       let date = new Date (elem.dt*1000)
+       let dayName = daynames[date.getDay()];     
+
+    let div = document.createElement('div');
+    let h4 = document.createElement('h4')
+        h4.innerText = dayName;
+    let icon = document.createElement('img')
+        icon.src = `http://openweathermap.org/img/wn/${elem.weather[0].icon}@2x.png`
+    let p1 = document.createElement('p')
+        p1.innerText=elem.temp.day
+    let p2 = document.createElement('p')
+        p2.innerText=elem.temp.night
+    div.append(h4,icon,p1,p2)
+
+    document.querySelector('#footer').append(div)    
+
+    }) 
+   
+
+}
+
+function logout(){
+   localStorage.removeItem('userDB');
+   window.location.href="login.html";
+}
+</script>
